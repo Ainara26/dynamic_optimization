@@ -18,7 +18,7 @@ def c(x):
 def J(x, args):
     phi = args
     capture = c(x)
-    return -(phi*x[-1]+np.sum(np.sqrt(capture)))
+    return -(phi*x[-1] + np.sum(np.sqrt(np.maximum(capture, 0.0))))
 
 N = 100
 EQUILIBRIUM = 0.5            # from Q2

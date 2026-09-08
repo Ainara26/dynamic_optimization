@@ -17,7 +17,7 @@ def c(x):
 
 def J(x):
     capture = c(x)
-    return -np.sum(np.sqrt(capture))
+    return -np.sum(np.sqrt(np.maximum(capture, 0.0)))
 
 N = 100
 x0 = np.full(N, 0.15)
