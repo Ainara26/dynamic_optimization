@@ -1,0 +1,51 @@
+import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import minimize
+
+HERE = pathlib.Path(__file__).parent
+
+def f(x):
+    return 2*x-x**2
+
+def c(x):
+    x = np.concatenate([[0.1], x])
+    x_next = x[1:]
+    x_current = x[:-1]
+    return f(x_current)-x_next
+
+def J(x, args):
+    phi = args
+    capture = c(x)
+    return -(phi*x[-1]+np.sum(np.sqrt(capture)))
+
+N = 100
+EQUILIBRIUM = 0.5            # from Q2
+
+
+def solve(phi, N=N):
+    """Maximise phi*X_N + sum sqrt(C_t). Returns (X, C, J)."""
+    guess = np.full(N, 0.15)
+    cons = {'type': 'ineq', 'fun': c}
+    bnds = [(0, 1)] * N
+    res = minimize(fun=J, x0=guess, args=(phi,), bounds=bnds,
+                    constraints=cons, method="SLSQP",
+                    options={"maxiter": 500, "ftol": 1e-12})
+    X = np.concatenate([[0.1], res.x])
+    return X, c(res.x), -res.fun
+
+
+phis = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 5.0]
+results = {}
+
+print(f"{'phi':>6}{'X_N':>10}{'plateau':>10}{'J':>10}   ends at equilibrium?")
+print("-" * 62)
+for phi in phis:
+    X, C, Jv = solve(phi)
+    results[phi] = (X, C)
+    plateau = np.median(X[N // 4:3 * N // 4])
+    hit = "  <-- YES" if abs(X[-1] - EQUILIBRIUM) < 1e-3 else ""
+    print(f"{phi:6.2f}{X[-1]:10.4f}{plateau:10.4f}{Jv:10.4f}{hit}")
+
+
